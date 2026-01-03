@@ -1,1 +1,180 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>MCQ Test</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#f2f2f2;
+}
+.box{
+  background:#fff;
+  padding:20px;
+  max-width:800px;
+  margin:30px auto;
+  border-radius:5px;
+}
+button{
+  padding:8px 15px;
+  margin:5px;
+}
+.correct{border-left:5px solid green;padding:10px}
+.wrong{border-left:5px solid red;padding:10px}
+.skipped{border-left:5px solid orange;padding:10px}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h3 id="title"></h3>
+  <div id="quiz"></div>
+
+  <button onclick="nextQuestion()">Next</button>
+  <button onclick="skipQuestion()">Skip</button>
+  <button onclick="finalSubmit()">Final Submit</button>
+</div>
+
+<script>
+// ---------------- USER DATA ----------------
+let name = localStorage.getItem("name");
+let subject = localStorage.getItem("subject");
+
+document.getElementById("title").innerText =
+  subject.toUpperCase() + " MCQ Test";
+
+// ---------------- MCQ DATA ----------------
+const mcq = {
+  history: [
+    {
+      q: "1857 का विद्रोह किस वर्ष हुआ?",
+      options: ["1856","1857","1858","1859"],
+      correct: 2,
+      exp: "1857 का विद्रोह 1857 में हुआ।"
+    },
+    {
+      q: "प्लासी का युद्ध कब हुआ?",
+      options: ["1757","1764","1761","1748"],
+      correct: 1,
+      exp: "प्लासी का युद्ध 1757 में हुआ।"
+    }
+  ],
+
+  polity: [
+    {
+      q: "भारतीय संविधान कब लागू हुआ?",
+      options: ["15 Aug 1947","26 Jan 1950","26 Nov 1949","2 Oct 1950"],
+      correct: 2,
+      exp: "संविधान 26 जनवरी 1950 को लागू हुआ।"
+    },
+    {
+      q: "संविधान सभा के अध्यक्ष कौन थे?",
+      options: ["नेहरू","अंबेडकर","राजेंद्र प्रसाद","पटेल"],
+      correct: 3,
+      exp: "डॉ. राजेंद्र प्रसाद अध्यक्ष थे।"
+    }
+  ],
+
+  geography: [
+    {
+      q: "भारत की सबसे लंबी नदी?",
+      options: ["यमुना","गंगा","ब्रह्मपुत्र","गोदावरी"],
+      correct: 2,
+      exp: "गंगा भारत की सबसे लंबी नदी है।"
+    },
+    {
+      q: "कर्क रेखा कितने राज्यों से गुजरती है?",
+      options: ["6","7","8","9"],
+      correct: 3,
+      exp: "कर्क रेखा 8 राज्यों से गुजरती है।"
+    }
+  ]
+};
+
+// ---------------- ENGINE ----------------
+let questions = mcq[subject];
+let i = 0, correct = 0, wrong = 0, skip = 0;
+let answers = [];
+
+function showQuestion(){
+  let q = questions[i];
+  quiz.innerHTML = `
+    <h4>Q${i+1}. ${q.q}</h4>
+    ${q.options.map((o,idx)=>`
+      <label>
+        <input type="radio" name="opt" value="${idx+1}">
+        ${o}
+      </label><br>
+    `).join("")}
+  `;
+}
+
+showQuestion();
+
+function saveAnswer(){
+  let sel = document.querySelector("input[name=opt]:checked");
+  answers[i] = sel ? Number(sel.value) : null;
+}
+
+function nextQuestion(){
+  saveAnswer();
+  i++;
+  i < questions.length ? showQuestion() : finalSubmit();
+}
+
+function skipQuestion(){
+  answers[i] = null;
+  i++;
+  i < questions.length ? showQuestion() : finalSubmit();
+}
+
+function finalSubmit(){
+  quiz.innerHTML = "<h3>Result</h3>";
+  questions.forEach((q,idx)=>{
+    if(answers[idx]==null){
+      skip++;
+      quiz.innerHTML += `
+        <div class="skipped">
+        <b>${q.q}</b><br>
+        Unattempted<br>
+        Correct: ${q.options[q.correct-1]}<br>
+        ${q.exp}
+        </div>`;
+    }
+    else if(answers[idx]==q.correct){
+      correct++;
+      quiz.innerHTML += `
+        <div class="correct">
+        <b>${q.q}</b><br>
+        Correct ✔<br>
+        ${q.exp}
+        </div>`;
+    }
+    else{
+      wrong++;
+      quiz.innerHTML += `
+        <div class="wrong">
+        <b>${q.q}</b><br>
+        Wrong ❌<br>
+        Your: ${q.options[answers[idx]-1]}<br>
+        Correct: ${q.options[q.correct-1]}<br>
+        ${q.exp}
+        </div>`;
+    }
+  });
+
+  quiz.innerHTML += `
+    <h3>
+      ✅ Correct: ${correct}<br>
+      ❌ Wrong: ${wrong}<br>
+      ⚠️ Unattempted: ${skip}
+    </h3>
+  `;
+}
+</script>
+
+</body>
+</html>
 
