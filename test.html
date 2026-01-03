@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
 <title>MCQ Test</title>
 
 <style>
 body{
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background:#f2f2f2;
 }
 .box{
@@ -23,7 +23,6 @@ body{
 button{
   padding:8px 15px;
   margin:5px;
-  cursor:pointer;
 }
 .correct{border-left:5px solid green;padding:10px;margin:10px 0}
 .wrong{border-left:5px solid red;padding:10px;margin:10px 0}
@@ -61,13 +60,12 @@ button{
 const params = new URLSearchParams(window.location.search);
 const subject = params.get("subject");
 
-let questions=[];
-if(subject==="history") questions = historyQuestions;
-else if(subject==="polity") questions = polityQuestions;
-else if(subject==="geography") questions = geographyQuestions;
-else{
+let questions = [];
+if(subject === "history") questions = historyQuestions;
+else if(subject === "polity") questions = polityQuestions;
+else if(subject === "geography") questions = geographyQuestions;
+else {
   alert("Invalid subject");
-  throw new Error("Invalid Subject");
 }
 
 // ================= VARIABLES =================
@@ -75,10 +73,9 @@ let index = 0;
 let answers = [];
 let correct = 0, wrong = 0, skipped = 0;
 
-let timeLeft = 60;
 let timerInterval;
+let timeLeft = 60;
 let startTestTime = Date.now();
-let qStartTime = 0;
 
 // ================= LOAD QUESTION =================
 function loadQuestion(){
@@ -87,7 +84,6 @@ function loadQuestion(){
   document.getElementById("timer").innerText = timeLeft;
 
   const q = questions[index];
-
   document.getElementById("qno").innerText =
     `Question ${index+1} / ${questions.length}`;
   document.getElementById("question").innerText = q.question;
@@ -103,7 +99,7 @@ function loadQuestion(){
       </label>`;
   });
 
-  qStartTime = Date.now();
+  window.qStartTime = Date.now();
 
   timerInterval = setInterval(()=>{
     timeLeft--;
@@ -111,7 +107,7 @@ function loadQuestion(){
 
     if(timeLeft <= 0){
       clearInterval(timerInterval);
-      answers[index] = null;
+      answers[index] = null; // ⬅️ unattempted
       index++;
       if(index < questions.length) loadQuestion();
       else finalSubmit();
@@ -126,7 +122,11 @@ function nextQuestion(){
   clearInterval(timerInterval);
 
   const selected = document.querySelector("input[name='opt']:checked");
-  answers[index] = selected ? parseInt(selected.value) : null;
+  if(selected){
+    answers[index] = parseInt(selected.value);
+  } else {
+    answers[index] = null;
+  }
 
   index++;
   if(index < questions.length) loadQuestion();
@@ -149,43 +149,46 @@ function finalSubmit(){
   const resBox = document.getElementById("resultBox");
   resBox.style.display="block";
 
-  const totalTime = Math.round((Date.now()-startTestTime)/1000);
-  const avgTime = (totalTime / questions.length).toFixed(1);
+  const totalSeconds = Math.floor((Date.now()-startTestTime)/1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const totalTimeText = minutes>0 ? `${minutes} min ${seconds} sec` : `${seconds} sec`;
+  const avgTime = (totalSeconds/questions.length).toFixed(1);
 
   let reviewHTML = "";
 
   questions.forEach((q,i)=>{
     const ua = answers[i];
-    const correctIndex = q.correct - 1; // 🔥 FIX (1-based → 0-based)
+    const correctIndex = q.correct - 1; // ✅ FIX (1→0 based)
 
-    if(ua === null){
+    if(ua === null || ua === undefined){
       skipped++;
       reviewHTML += `
-        <div class="skipped">
-          <b>Q:</b> ${q.question}<br>
-          <b>Status:</b> Skipped<br>
-          <b>Correct:</b> ${q.options[correctIndex]}<br>
-          <b>Explanation:</b> ${q.explanation}
-        </div>`;
+      <div class="skipped">
+        <b>Q:</b> ${q.question}<br>
+        <b>Status:</b> Skipped<br>
+        <b>Correct:</b> ${q.options[correctIndex]}<br>
+        <b>Explanation:</b> ${q.explanation}
+      </div>`;
     }
     else if(ua === correctIndex){
       correct++;
       reviewHTML += `
-        <div class="correct">
-          <b>Q:</b> ${q.question}<br>
-          <b>Status:</b> Correct<br>
-          <b>Explanation:</b> ${q.explanation}
-        </div>`;
+      <div class="correct">
+        <b>Q:</b> ${q.question}<br>
+        <b>Status:</b> Correct<br>
+        <b>Explanation:</b> ${q.explanation}
+      </div>`;
     }
     else{
       wrong++;
       reviewHTML += `
-        <div class="wrong">
-          <b>Q:</b> ${q.question}<br>
-          <b>Your:</b> ${q.options[ua]}<br>
-          <b>Correct:</b> ${q.options[correctIndex]}<br>
-          <b>Explanation:</b> ${q.explanation}
-        </div>`;
+      <div class="wrong">
+        <b>Q:</b> ${q.question}<br>
+        <b>Your:</b> ${q.options[ua]}<br>
+        <b>Correct:</b> ${q.options[correctIndex]}<br>
+        <b>Explanation:</b> ${q.explanation}
+      </div>`;
     }
   });
 
@@ -195,7 +198,7 @@ function finalSubmit(){
     <p><b>Correct:</b> ${correct}</p>
     <p><b>Wrong:</b> ${wrong}</p>
     <p><b>Skipped:</b> ${skipped}</p>
-    <p><b>Total Time:</b> ${totalTime} sec</p>
+    <p><b>Total Time:</b> ${totalTimeText}</p>
     <p><b>Average Time / Question:</b> ${avgTime} sec</p>
     <hr>
     <h3>Answer Review</h3>
