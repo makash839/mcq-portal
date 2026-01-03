@@ -29,7 +29,7 @@ button{
 
 <body>
 
-<div class="box">
+<div class="box" id="quizBox">
   <h2 id="subjectTitle"></h2>
   <h3 id="qno"></h3>
   <p id="question"></p>
@@ -41,32 +41,41 @@ button{
 </div>
 
 <script>
-/* 🔹 SUBJECT LOAD LOGIC */
+/* 🔹 GET SUBJECT */
 const params = new URLSearchParams(window.location.search);
 const subject = params.get("subject");
 
 let questions = [];
-
-if(subject === "history"){
-  document.write('<script src="data/history.js"><\/script>');
-}
-if(subject === "polity"){
-  document.write('<script src="data/polity.js"><\/script>');
-}
-if(subject === "geography"){
-  document.write('<script src="data/geography.js"><\/script>');
-}
-</script>
-
-<script>
 let index = 0;
 let correct = 0;
 let wrong = 0;
 let skipped = 0;
 let userAnswers = [];
 
-/* 🔹 AFTER FILE LOAD */
-window.onload = () => {
+/* 🔹 DYNAMIC SCRIPT LOADER */
+function loadScript(src, callback){
+  const script = document.createElement("script");
+  script.src = src;
+  script.onload = callback;
+  document.body.appendChild(script);
+}
+
+/* 🔹 LOAD SUBJECT FILE */
+if(subject === "history"){
+  loadScript("data/history.js", initTest);
+}
+else if(subject === "polity"){
+  loadScript("data/polity.js", initTest);
+}
+else if(subject === "geography"){
+  loadScript("data/geography.js", initTest);
+}
+else{
+  document.body.innerHTML = "<h2>❌ Invalid Subject</h2>";
+}
+
+/* 🔹 INIT TEST */
+function initTest(){
   if(subject === "history") questions = historyQuestions;
   if(subject === "polity") questions = polityQuestions;
   if(subject === "geography") questions = geographyQuestions;
@@ -75,12 +84,15 @@ window.onload = () => {
     subject.toUpperCase() + " MCQ TEST";
 
   loadQuestion();
-};
+}
 
+/* 🔹 LOAD QUESTION */
 function loadQuestion(){
   const q = questions[index];
+
   document.getElementById("qno").innerText =
     `Question ${index+1} / ${questions.length}`;
+
   document.getElementById("question").innerText = q.question;
 
   let html = "";
@@ -96,12 +108,7 @@ function loadQuestion(){
 
 function nextQuestion(){
   const selected = document.querySelector('input[name="opt"]:checked');
-
-  if(selected){
-    userAnswers[index] = Number(selected.value);
-  }else{
-    userAnswers[index] = null;
-  }
+  userAnswers[index] = selected ? Number(selected.value) : null;
 
   index++;
   if(index < questions.length){
