@@ -1,38 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Admin Panel</title>
+<meta charset="UTF-8">
+<title>Admin Panel - MCQ</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#f2f2f2;
+}
+.box{
+  max-width:400px;
+  margin:60px auto;
+  background:#fff;
+  padding:25px;
+  box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+input,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+}
+button{
+  cursor:pointer;
+}
+.success{color:green}
+.error{color:red}
+</style>
 </head>
+
 <body>
 
-<h2>🔐 Admin Panel</h2>
+<div class="box">
+  <h2>🔐 Admin Panel</h2>
 
-<input type="password" id="oldPass" placeholder="Old Password"><br><br>
-<input type="password" id="newPass" placeholder="New Password"><br><br>
-<button onclick="changePass()">Change Password</button>
+  <div id="loginBox">
+    <input type="password" id="adminPass" placeholder="Admin Password">
+    <button onclick="adminLogin()">Login</button>
+    <p id="loginMsg"></p>
+  </div>
 
-<p id="msg"></p>
+  <div id="controlBox" style="display:none">
+    <h3>Change MCQ Password</h3>
+    <input type="text" id="newPass" placeholder="New MCQ Password">
+    <button onclick="savePassword()">Save Password</button>
+    <p id="saveMsg"></p>
+  </div>
+</div>
 
 <script>
-if(!localStorage.getItem("mcq_password")){
-  localStorage.setItem("mcq_password","12345"); // default
+// ❗❗ CHANGE THIS (ADMIN PASSWORD)
+const ADMIN_PASSWORD = "akash@admin";
+
+function adminLogin(){
+  const pass = document.getElementById("adminPass").value;
+  if(pass === ADMIN_PASSWORD){
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("controlBox").style.display="block";
+  }else{
+    document.getElementById("loginMsg").innerHTML =
+      "<span class='error'>Wrong Admin Password</span>";
+  }
 }
 
-function changePass(){
-  const oldP = document.getElementById("oldPass").value;
-  const newP = document.getElementById("newPass").value;
-  const saved = localStorage.getItem("mcq_password");
-
-  if(oldP !== saved){
-    document.getElementById("msg").innerText="❌ Old password wrong";
+function savePassword(){
+  const p = document.getElementById("newPass").value.trim();
+  if(p.length < 3){
+    document.getElementById("saveMsg").innerHTML =
+      "<span class='error'>Password too short</span>";
     return;
   }
-  localStorage.setItem("mcq_password", newP);
-  document.getElementById("msg").innerText="✅ Password changed successfully";
+  localStorage.setItem("mcq_password", p);
+  document.getElementById("saveMsg").innerHTML =
+    "<span class='success'>MCQ Password Saved Successfully</span>";
 }
 </script>
 
 </body>
 </html>
-
-
