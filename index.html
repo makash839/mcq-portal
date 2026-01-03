@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>MCQ Portal</title>
+
 <style>
 body{
   font-family: Arial;
@@ -24,18 +25,59 @@ input,button{
   padding:10px;
   margin:8px 0;
 }
+button{
+  cursor:pointer;
+}
+.hidden{
+  display:none;
+}
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>MCQ Test Portal</h2>
-  <input placeholder="Name">
-  <input placeholder="Mobile">
-  <input placeholder="Email">
-  <button>Continue</button>
+<!-- STEP 1: USER DETAILS -->
+<div class="box" id="detailsBox">
+  <h2>Enter Details</h2>
+  <input id="name" placeholder="Name">
+  <input id="mobile" placeholder="Mobile">
+  <input id="email" placeholder="Email">
+  <button onclick="goToSubject()">Continue</button>
 </div>
+
+<!-- STEP 2: SUBJECT SELECTION -->
+<div class="box hidden" id="subjectBox">
+  <h2>Select Subject</h2>
+  <button onclick="startTest('history')">📜 History</button>
+  <button onclick="startTest('polity')">🏛 Polity</button>
+  <button onclick="startTest('geography')">🌍 Geography</button>
+</div>
+
+<script>
+function goToSubject(){
+  const name = document.getElementById("name").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const email = document.getElementById("email").value.trim();
+
+  if(!name || !mobile || !email){
+    alert("All fields required");
+    return;
+  }
+
+  localStorage.setItem("user_name", name);
+  localStorage.setItem("user_mobile", mobile);
+  localStorage.setItem("user_email", email);
+
+  document.getElementById("detailsBox").classList.add("hidden");
+  document.getElementById("subjectBox").classList.remove("hidden");
+}
+
+function startTest(subject){
+  localStorage.setItem("subject", subject);
+  alert("Subject selected: " + subject.toUpperCase());
+  // NEXT STEP: yahin se subject page open hoga
+}
+</script>
 
 </body>
 </html>
