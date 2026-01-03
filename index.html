@@ -2,28 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MCQ Portal Login</title>
-
-<!-- PASSWORD CONFIG -->
-<script src="config.js"></script>
-
+<title>MCQ Login</title>
 <style>
 body{
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background:#f2f2f2;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
 }
 .box{
+  max-width:400px;
+  margin:100px auto;
   background:#fff;
-  padding:25px;
-  width:350px;
+  padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
-}
-h2{
-  text-align:center;
 }
 input,select,button{
   width:100%;
@@ -31,56 +21,54 @@ input,select,button{
   margin:8px 0;
 }
 button{
-  background:#007bff;
+  background:#0b3c6d;
   color:#fff;
   border:none;
   cursor:pointer;
 }
-button:hover{
-  background:#0056b3;
-}
 </style>
 </head>
-
 <body>
 
 <div class="box">
-  <h2>MCQ Test Login</h2>
+  <h2>Login to MCQ Test</h2>
 
-  <input type="text" id="name" placeholder="Your Name" required>
-  <input type="email" id="email" placeholder="Your Email" required>
-  <input type="text" id="mobile" placeholder="Mobile Number" required>
+  <input id="name" placeholder="Name" required>
+  <input id="mobile" placeholder="Mobile Number" required>
+  <input id="email" placeholder="Email" required>
+  <input id="password" type="password" placeholder="Password" required>
 
-  <select id="subject" required>
+  <select id="subject">
     <option value="">Select Subject</option>
     <option value="history">History</option>
     <option value="polity">Polity</option>
     <option value="geography">Geography</option>
   </select>
 
-  <input type="password" id="password" placeholder="Enter Password" required>
-
-  <button onclick="loginUser()">Start Test</button>
+  <button onclick="login()">Login & Start</button>
 </div>
 
 <script>
-function loginUser(){
+// 🔐 CHANGE PASSWORD ONLY HERE
+const MCQ_PASSWORD = "1234";
+
+function login(){
   const pass = document.getElementById("password").value;
   const subject = document.getElementById("subject").value;
 
   if(pass !== MCQ_PASSWORD){
-    alert("❌ Wrong Password");
+    alert("Wrong Password");
     return;
   }
-
   if(!subject){
-    alert("❌ Please select a subject");
+    alert("Select subject");
     return;
   }
 
-  // details URL me bhej rahe hain
-  window.location.href =
-    `test.html?subject=${subject}`;
+  localStorage.setItem("mcqLogin","yes");
+  localStorage.setItem("subject",subject);
+
+  window.location.href = "test.html";
 }
 </script>
 
