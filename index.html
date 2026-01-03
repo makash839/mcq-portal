@@ -1,20 +1,23 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MCQ Test Portal</title>
+<title>MCQ Portal</title>
 
 <style>
 body{
   font-family: Arial;
   background:#f2f2f2;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 .box{
   background:#fff;
-  padding:20px;
-  max-width:400px;
-  margin:50px auto;
-  border-radius:5px;
+  padding:25px;
+  width:350px;
+  box-shadow:0 0 10px rgba(0,0,0,0.2);
 }
 input, select, button{
   width:100%;
@@ -27,17 +30,20 @@ button{
   border:none;
   cursor:pointer;
 }
+button:hover{
+  background:#0056b3;
+}
 </style>
 </head>
 
 <body>
 
 <div class="box">
-  <h2>MCQ Test</h2>
+  <h2>MCQ Test Portal</h2>
 
-  <input id="name" placeholder="Enter Name">
-  <input id="mobile" placeholder="Enter Mobile">
-  <input id="email" placeholder="Enter Email">
+  <input type="text" id="name" placeholder="Enter Name">
+  <input type="text" id="mobile" placeholder="Enter Mobile">
+  <input type="email" id="email" placeholder="Enter Email">
 
   <select id="subject">
     <option value="">-- Select Subject --</option>
@@ -51,23 +57,23 @@ button{
 
 <script>
 function startTest(){
-  let name = document.getElementById("name").value;
-  let mobile = document.getElementById("mobile").value;
-  let email = document.getElementById("email").value;
-  let subject = document.getElementById("subject").value;
+  const name = document.getElementById("name").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const subject = document.getElementById("subject").value;
 
   if(!name || !mobile || !email || !subject){
-    alert("All fields are required");
+    alert("Please fill all details");
     return;
   }
 
-  // data store (next page ke liye)
+  // data save (browser memory)
   localStorage.setItem("name", name);
   localStorage.setItem("mobile", mobile);
   localStorage.setItem("email", email);
   localStorage.setItem("subject", subject);
 
-  // test page open
+  // go to test page
   window.location.href = "test.html";
 }
 </script>
