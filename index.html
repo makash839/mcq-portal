@@ -1,24 +1,33 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MCQ Test Login</title>
+<title>MCQ Portal Login</title>
+
+<!-- PASSWORD CONFIG -->
+<script src="config.js"></script>
 
 <style>
 body{
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background:#f2f2f2;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 .box{
   background:#fff;
-  max-width:400px;
-  margin:60px auto;
-  padding:20px;
+  padding:25px;
+  width:350px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
 }
-input, select, button{
+h2{
+  text-align:center;
+}
+input,select,button{
   width:100%;
-  padding:8px;
+  padding:10px;
   margin:8px 0;
 }
 button{
@@ -30,59 +39,48 @@ button{
 button:hover{
   background:#0056b3;
 }
-.error{
-  color:red;
-  margin-top:10px;
-}
 </style>
 </head>
 
 <body>
 
 <div class="box">
-  <h2>📝 MCQ Test Login</h2>
+  <h2>MCQ Test Login</h2>
 
-  <input id="name" placeholder="Enter Name">
-  <input id="mobile" placeholder="Enter Mobile Number">
-  <input id="email" placeholder="Enter Email">
+  <input type="text" id="name" placeholder="Your Name" required>
+  <input type="email" id="email" placeholder="Your Email" required>
+  <input type="text" id="mobile" placeholder="Mobile Number" required>
 
-  <select id="subject">
+  <select id="subject" required>
     <option value="">Select Subject</option>
-    <option value="polity">Polity</option>
     <option value="history">History</option>
+    <option value="polity">Polity</option>
     <option value="geography">Geography</option>
   </select>
 
-  <input id="password" type="password" placeholder="Enter Test Password">
+  <input type="password" id="password" placeholder="Enter Password" required>
 
-  <button onclick="startTest()">Start Test</button>
-
-  <div class="error" id="error"></div>
+  <button onclick="loginUser()">Start Test</button>
 </div>
 
 <script>
-const TEST_PASSWORD = "TEST@123"; // 🔐 CHANGE LATER FROM ADMIN
-
-function startTest(){
-  const name = document.getElementById("name").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
-  const email = document.getElementById("email").value.trim();
+function loginUser(){
+  const pass = document.getElementById("password").value;
   const subject = document.getElementById("subject").value;
-  const password = document.getElementById("password").value;
 
-  if(!name || !mobile || !email || !subject || !password){
-    document.getElementById("error").innerText = "❌ All fields are required";
+  if(pass !== MCQ_PASSWORD){
+    alert("❌ Wrong Password");
     return;
   }
 
-  if(password !== TEST_PASSWORD){
-    document.getElementById("error").innerText = "❌ Wrong Password";
+  if(!subject){
+    alert("❌ Please select a subject");
     return;
   }
 
-  // redirect to test page
+  // details URL me bhej rahe hain
   window.location.href =
-    `test.html?subject=${subject}&name=${encodeURIComponent(name)}&mobile=${mobile}&email=${encodeURIComponent(email)}`;
+    `test.html?subject=${subject}`;
 }
 </script>
 
