@@ -6,12 +6,12 @@
 
 <style>
 body{
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background:#f2f2f2;
 }
 .box{
   background:#fff;
-  max-width:800px;
+  max-width:900px;
   margin:30px auto;
   padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
@@ -23,10 +23,11 @@ body{
 button{
   padding:8px 15px;
   margin:5px;
+  cursor:pointer;
 }
-.correct{border-left:5px solid green;padding:10px}
-.wrong{border-left:5px solid red;padding:10px}
-.skipped{border-left:5px solid orange;padding:10px}
+.correct{border-left:5px solid green;padding:10px;margin:10px 0}
+.wrong{border-left:5px solid red;padding:10px;margin:10px 0}
+.skipped{border-left:5px solid orange;padding:10px;margin:10px 0}
 #timer{
   font-weight:bold;
   color:red;
@@ -50,83 +51,49 @@ button{
 
 <div class="box" id="resultBox" style="display:none"></div>
 
-<script>
-/* ================= AUTO VERSION SCRIPT LOADER ================= */
-function loadScript(src, callback) {
-  const s = document.createElement("script");
-  s.src = src + "?v=" + Date.now();   // 🔥 auto cache bust
-  s.onload = callback;
-  document.head.appendChild(s);
-}
+<!-- SUBJECT FILES -->
+<script src="data/history.js"></script>
+<script src="data/polity.js"></script>
+<script src="data/geography.js"></script>
 
-/* ================= SUBJECT SELECT ================= */
+<script>
+// ================= SUBJECT SELECT =================
 const params = new URLSearchParams(window.location.search);
 const subject = params.get("subject");
 
-if(!subject){
-  alert("Subject not selected");
-}
-
-/* ================= GLOBAL VARIABLES ================= */
 let questions=[];
-let index=0;
-let answers=[];
-let correct=0, wrong=0, skipped=0;
+if(subject==="history") questions = historyQuestions;
+else if(subject==="polity") questions = polityQuestions;
+else if(subject==="geography") questions = geographyQuestions;
+else{
+  alert("Invalid subject");
+  throw new Error("Invalid Subject");
+}
 
-let timeLeft=60;
+// ================= VARIABLES =================
+let index = 0;
+let answers = [];
+let correct = 0, wrong = 0, skipped = 0;
+
+let timeLeft = 60;
 let timerInterval;
-let startTestTime=Date.now();
-let timePerQuestion=[];
-let qStartTime=0;
+let startTestTime = Date.now();
+let qStartTime = 0;
 
-/* ================= START TEST ================= */
-function startTest(){
-  if(subject==="history"){
-    loadScript("data/history.js", ()=>{
-      questions = historyQuestions;
-      initTest();
-    });
-  }
-  else if(subject==="polity"){
-    loadScript("data/polity.js", ()=>{
-      questions = polityQuestions;
-      initTest();
-    });
-  }
-  else if(subject==="geography"){
-    loadScript("data/geography.js", ()=>{
-      questions = geographyQuestions;
-      initTest();
-    });
-  }
-  else{
-    alert("Invalid subject");
-  }
-}
-
-/* ================= INIT ================= */
-function initTest(){
-  index=0;
-  answers=[];
-  correct=wrong=skipped=0;
-  startTestTime=Date.now();
-  loadQuestion();
-}
-
-/* ================= LOAD QUESTION ================= */
+// ================= LOAD QUESTION =================
 function loadQuestion(){
   clearInterval(timerInterval);
+  timeLeft = 60;
+  document.getElementById("timer").innerText = timeLeft;
 
-  timeLeft=60;
-  document.getElementById("timer").innerText=timeLeft;
+  const q = questions[index];
 
-  const q=questions[index];
   document.getElementById("qno").innerText =
-    `Question ${index+1}/${questions.length}`;
+    `Question ${index+1} / ${questions.length}`;
   document.getElementById("question").innerText = q.question;
 
-  const optDiv=document.getElementById("options");
-  optDiv.innerHTML="";
+  const optDiv = document.getElementById("options");
+  optDiv.innerHTML = "";
 
   q.options.forEach((opt,i)=>{
     optDiv.innerHTML += `
@@ -140,89 +107,85 @@ function loadQuestion(){
 
   timerInterval = setInterval(()=>{
     timeLeft--;
-    document.getElementById("timer").innerText=timeLeft;
+    document.getElementById("timer").innerText = timeLeft;
 
-    if(timeLeft<=0){
+    if(timeLeft <= 0){
       clearInterval(timerInterval);
-      answers[index]=null;
-      timePerQuestion.push(60);
+      answers[index] = null;
       index++;
-      if(index<questions.length) loadQuestion();
+      if(index < questions.length) loadQuestion();
       else finalSubmit();
     }
   },1000);
 }
 
-/* ================= NEXT ================= */
+loadQuestion();
+
+// ================= NEXT =================
 function nextQuestion(){
   clearInterval(timerInterval);
 
-  const selected=document.querySelector("input[name='opt']:checked");
-  const spent=Math.min(60,Math.round((Date.now()-qStartTime)/1000));
-  timePerQuestion.push(spent);
-
-  if(selected) answers[index]=parseInt(selected.value);
-  else answers[index]=null;
+  const selected = document.querySelector("input[name='opt']:checked");
+  answers[index] = selected ? parseInt(selected.value) : null;
 
   index++;
-  if(index<questions.length) loadQuestion();
+  if(index < questions.length) loadQuestion();
   else finalSubmit();
 }
 
-/* ================= SKIP ================= */
+// ================= SKIP =================
 function skipQuestion(){
   clearInterval(timerInterval);
-  answers[index]=null;
-  timePerQuestion.push(60);
+  answers[index] = null;
   index++;
-  if(index<questions.length) loadQuestion();
+  if(index < questions.length) loadQuestion();
   else finalSubmit();
 }
 
-/* ================= FINAL SUBMIT ================= */
+// ================= FINAL SUBMIT =================
 function finalSubmit(){
   clearInterval(timerInterval);
   document.getElementById("quizBox").style.display="none";
-
-  const resBox=document.getElementById("resultBox");
+  const resBox = document.getElementById("resultBox");
   resBox.style.display="block";
 
-  const totalTime=Math.round((Date.now()-startTestTime)/1000);
-  const avgTime=(totalTime/questions.length).toFixed(1);
+  const totalTime = Math.round((Date.now()-startTestTime)/1000);
+  const avgTime = (totalTime / questions.length).toFixed(1);
 
-  let reviewHTML="";
+  let reviewHTML = "";
 
   questions.forEach((q,i)=>{
-    const ua=answers[i];
+    const ua = answers[i];
+    const correctIndex = q.correct - 1; // 🔥 FIX (1-based → 0-based)
 
-    if(ua===null){
+    if(ua === null){
       skipped++;
-      reviewHTML+=`
-      <div class="skipped">
-        <b>Q:</b> ${q.question}<br>
-        <b>Status:</b> Skipped<br>
-        <b>Correct:</b> ${q.options[q.correct]}<br>
-        <b>Explanation:</b> ${q.explanation}
-      </div>`;
+      reviewHTML += `
+        <div class="skipped">
+          <b>Q:</b> ${q.question}<br>
+          <b>Status:</b> Skipped<br>
+          <b>Correct:</b> ${q.options[correctIndex]}<br>
+          <b>Explanation:</b> ${q.explanation}
+        </div>`;
     }
-    else if(ua===q.correct){
+    else if(ua === correctIndex){
       correct++;
-      reviewHTML+=`
-      <div class="correct">
-        <b>Q:</b> ${q.question}<br>
-        <b>Status:</b> Correct<br>
-        <b>Explanation:</b> ${q.explanation}
-      </div>`;
+      reviewHTML += `
+        <div class="correct">
+          <b>Q:</b> ${q.question}<br>
+          <b>Status:</b> Correct<br>
+          <b>Explanation:</b> ${q.explanation}
+        </div>`;
     }
     else{
       wrong++;
-      reviewHTML+=`
-      <div class="wrong">
-        <b>Q:</b> ${q.question}<br>
-        <b>Your:</b> ${q.options[ua]}<br>
-        <b>Correct:</b> ${q.options[q.correct]}<br>
-        <b>Explanation:</b> ${q.explanation}
-      </div>`;
+      reviewHTML += `
+        <div class="wrong">
+          <b>Q:</b> ${q.question}<br>
+          <b>Your:</b> ${q.options[ua]}<br>
+          <b>Correct:</b> ${q.options[correctIndex]}<br>
+          <b>Explanation:</b> ${q.explanation}
+        </div>`;
     }
   });
 
@@ -239,9 +202,6 @@ function finalSubmit(){
     ${reviewHTML}
   `;
 }
-
-/* ================= START ================= */
-startTest();
 </script>
 
 </body>
