@@ -4,12 +4,6 @@
 <meta charset="UTF-8">
 <title>MCQ Test</title>
 
-<!-- EMAILJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-  emailjs.init("5yWeyqCS6d88LlA3e"); // PUBLIC KEY
-</script>
-
 <style>
 body{
   font-family: Arial;
@@ -22,12 +16,21 @@ body{
   padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
 }
-.option{display:block;margin:8px 0;}
-button{padding:8px 15px;margin:5px;}
-.correct{border-left:5px solid green;padding:10px;margin:8px 0}
-.wrong{border-left:5px solid red;padding:10px;margin:8px 0}
-.skipped{border-left:5px solid orange;padding:10px;margin:8px 0}
-#timer{font-weight:bold;color:red;}
+.option{
+  display:block;
+  margin:8px 0;
+}
+button{
+  padding:8px 15px;
+  margin:5px;
+}
+.correct{border-left:5px solid green;padding:10px}
+.wrong{border-left:5px solid red;padding:10px}
+.skipped{border-left:5px solid orange;padding:10px}
+#timer{
+  font-weight:bold;
+  color:red;
+}
 </style>
 </head>
 
@@ -47,24 +50,25 @@ button{padding:8px 15px;margin:5px;}
 
 <div class="box" id="resultBox" style="display:none"></div>
 
-<!-- SUBJECT FILES -->
-<script src="data/history.js"></script>
-<script src="data/polity.js"></script>
-<script src="data/geography.js"></script>
-
 <script>
-// ================= URL DATA =================
+/* ================= AUTO VERSION SCRIPT LOADER ================= */
+function loadScript(src, callback) {
+  const s = document.createElement("script");
+  s.src = src + "?v=" + Date.now();   // 🔥 auto cache bust
+  s.onload = callback;
+  document.head.appendChild(s);
+}
+
+/* ================= SUBJECT SELECT ================= */
 const params = new URLSearchParams(window.location.search);
 const subject = params.get("subject");
 
-// ================= QUESTIONS =================
-let questions=[];
-if(subject==="history") questions=historyQuestions;
-else if(subject==="polity") questions=polityQuestions;
-else if(subject==="geography") questions=geographyQuestions;
-else alert("Invalid subject");
+if(!subject){
+  alert("Subject not selected");
+}
 
-// ================= VARIABLES =================
+/* ================= GLOBAL VARIABLES ================= */
+let questions=[];
 let index=0;
 let answers=[];
 let correct=0, wrong=0, skipped=0;
@@ -73,32 +77,68 @@ let timeLeft=60;
 let timerInterval;
 let startTestTime=Date.now();
 let timePerQuestion=[];
+let qStartTime=0;
 
-// ================= LOAD QUESTION =================
+/* ================= START TEST ================= */
+function startTest(){
+  if(subject==="history"){
+    loadScript("data/history.js", ()=>{
+      questions = historyQuestions;
+      initTest();
+    });
+  }
+  else if(subject==="polity"){
+    loadScript("data/polity.js", ()=>{
+      questions = polityQuestions;
+      initTest();
+    });
+  }
+  else if(subject==="geography"){
+    loadScript("data/geography.js", ()=>{
+      questions = geographyQuestions;
+      initTest();
+    });
+  }
+  else{
+    alert("Invalid subject");
+  }
+}
+
+/* ================= INIT ================= */
+function initTest(){
+  index=0;
+  answers=[];
+  correct=wrong=skipped=0;
+  startTestTime=Date.now();
+  loadQuestion();
+}
+
+/* ================= LOAD QUESTION ================= */
 function loadQuestion(){
   clearInterval(timerInterval);
+
   timeLeft=60;
   document.getElementById("timer").innerText=timeLeft;
 
   const q=questions[index];
-  document.getElementById("qno").innerText=`Question ${index+1}/${questions.length}`;
-  document.getElementById("question").innerText=q.question;
+  document.getElementById("qno").innerText =
+    `Question ${index+1}/${questions.length}`;
+  document.getElementById("question").innerText = q.question;
 
   const optDiv=document.getElementById("options");
   optDiv.innerHTML="";
 
   q.options.forEach((opt,i)=>{
-    optDiv.innerHTML+=`
+    optDiv.innerHTML += `
       <label class="option">
         <input type="radio" name="opt" value="${i}">
         ${opt}
       </label>`;
   });
 
-  const qStart=Date.now();
-  window.qStartTime=qStart;
+  qStartTime = Date.now();
 
-  timerInterval=setInterval(()=>{
+  timerInterval = setInterval(()=>{
     timeLeft--;
     document.getElementById("timer").innerText=timeLeft;
 
@@ -113,24 +153,23 @@ function loadQuestion(){
   },1000);
 }
 
-loadQuestion();
-
-// ================= NEXT =================
+/* ================= NEXT ================= */
 function nextQuestion(){
   clearInterval(timerInterval);
 
   const selected=document.querySelector("input[name='opt']:checked");
-  const spent=Math.min(60,Math.round((Date.now()-window.qStartTime)/1000));
+  const spent=Math.min(60,Math.round((Date.now()-qStartTime)/1000));
   timePerQuestion.push(spent);
 
-  answers[index]= selected ? parseInt(selected.value) : null;
+  if(selected) answers[index]=parseInt(selected.value);
+  else answers[index]=null;
 
   index++;
   if(index<questions.length) loadQuestion();
   else finalSubmit();
 }
 
-// ================= SKIP =================
+/* ================= SKIP ================= */
 function skipQuestion(){
   clearInterval(timerInterval);
   answers[index]=null;
@@ -140,10 +179,11 @@ function skipQuestion(){
   else finalSubmit();
 }
 
-// ================= FINAL SUBMIT =================
+/* ================= FINAL SUBMIT ================= */
 function finalSubmit(){
   clearInterval(timerInterval);
   document.getElementById("quizBox").style.display="none";
+
   const resBox=document.getElementById("resultBox");
   resBox.style.display="block";
 
@@ -186,40 +226,22 @@ function finalSubmit(){
     }
   });
 
-  resBox.innerHTML=`
+  resBox.innerHTML = `
     <h2>📊 Final Result</h2>
     <p><b>Total Questions:</b> ${questions.length}</p>
     <p><b>Correct:</b> ${correct}</p>
     <p><b>Wrong:</b> ${wrong}</p>
     <p><b>Skipped:</b> ${skipped}</p>
     <p><b>Total Time:</b> ${totalTime} sec</p>
-    <p><b>Average Time / Q:</b> ${avgTime} sec</p>
+    <p><b>Average Time / Question:</b> ${avgTime} sec</p>
     <hr>
     <h3>Answer Review</h3>
     ${reviewHTML}
   `;
-
-  // ============ EMAILJS SEND ============
-  emailjs.send(
-    "service_fyssovx",
-    "template_qfj8k1q",
-    {
-      user_name: "MCQ User",
-      subject: subject,
-      total: questions.length,
-      correct: correct,
-      wrong: wrong,
-      skipped: skipped,
-      total_time: totalTime + " sec",
-      avg_time: avgTime + " sec",
-      result_details: reviewHTML
-    }
-  ).then(()=>{
-    console.log("📧 Result email sent");
-  }).catch(err=>{
-    console.error("❌ Email error",err);
-  });
 }
+
+/* ================= START ================= */
+startTest();
 </script>
 
 </body>
