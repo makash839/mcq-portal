@@ -1,73 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>MCQ Portal</title>
+<title>MCQ Test Login</title>
 
 <style>
 body{
   font-family: Arial;
   background:#f2f2f2;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
 }
 .box{
   background:#fff;
+  max-width:400px;
+  margin:60px auto;
   padding:25px;
-  width:320px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
 }
-input,select,button{
+input{
   width:100%;
-  padding:10px;
+  padding:8px;
   margin:8px 0;
 }
 button{
-  background:#007bff;
-  color:#fff;
-  border:none;
-  cursor:pointer;
+  padding:8px 15px;
+  margin-top:10px;
+  width:100%;
 }
+.hidden{display:none}
+.error{color:red}
+.success{color:green}
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>MCQ Test Portal</h2>
+<div class="box" id="loginBox">
+  <h2>🔐 MCQ Test Login</h2>
+  <input type="password" id="loginPassword" placeholder="Enter Password">
+  <button onclick="login()">Login</button>
+  <p id="loginMsg" class="error"></p>
+</div>
 
-  <input id="name" placeholder="Name" required>
-  <input id="email" placeholder="Email" required>
-  <input id="mobile" placeholder="Mobile" required>
+<div class="box hidden" id="subjectBox">
+  <h2>📚 Select Subject</h2>
 
-  <select id="subject">
-    <option value="">-- Select Subject --</option>
-    <option value="history">History</option>
-    <option value="polity">Polity</option>
-    <option value="geography">Geography</option>
-  </select>
+  <button onclick="startTest('history')">History</button>
+  <button onclick="startTest('polity')">Polity</button>
+  <button onclick="startTest('geography')">Geography</button>
 
-  <button onclick="startTest()">Start Test</button>
+  <hr>
+  <h3>🔑 Change Password</h3>
+  <input type="password" id="newPassword" placeholder="New Password">
+  <button onclick="changePassword()">Change Password</button>
+  <p id="changeMsg" class="success"></p>
 </div>
 
 <script>
-function startTest(){
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
-  const subject = document.getElementById("subject").value;
+// ================= DEFAULT PASSWORD =================
+if(!localStorage.getItem("mcqPassword")){
+  localStorage.setItem("mcqPassword","1234");
+}
 
-  if(!name || !email || !mobile || !subject){
-    alert("All fields required");
+// ================= LOGIN =================
+function login(){
+  const entered = document.getElementById("loginPassword").value;
+  const saved = localStorage.getItem("mcqPassword");
+
+  if(entered === saved){
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("subjectBox").classList.remove("hidden");
+  } else {
+    document.getElementById("loginMsg").innerText = "❌ Wrong Password";
+  }
+}
+
+// ================= CHANGE PASSWORD =================
+function changePassword(){
+  const newPass = document.getElementById("newPassword").value;
+  if(newPass.length < 4){
+    document.getElementById("changeMsg").innerText = "❌ Min 4 characters required";
     return;
   }
+  localStorage.setItem("mcqPassword",newPass);
+  document.getElementById("changeMsg").innerText = "✅ Password Changed Successfully";
+  document.getElementById("newPassword").value="";
+}
 
-  const url =
-    `test.html?subject=${subject}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&mobile=${mobile}`;
-
-  window.location.href = url;
+// ================= START TEST =================
+function startTest(subject){
+  window.location.href = `test.html?subject=${subject}`;
 }
 </script>
 
