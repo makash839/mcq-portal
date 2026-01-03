@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <title>MCQ Test</title>
 
+<!-- EMAILJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  emailjs.init("5yWeyqCS6d88LlA3e"); // PUBLIC KEY
+</script>
+
 <style>
 body{
   font-family: Arial;
@@ -16,21 +22,12 @@ body{
   padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
 }
-.option{
-  display:block;
-  margin:8px 0;
-}
-button{
-  padding:8px 15px;
-  margin:5px;
-}
-.correct{border-left:5px solid green;padding:10px}
-.wrong{border-left:5px solid red;padding:10px}
-.skipped{border-left:5px solid orange;padding:10px}
-#timer{
-  font-weight:bold;
-  color:red;
-}
+.option{display:block;margin:8px 0;}
+button{padding:8px 15px;margin:5px;}
+.correct{border-left:5px solid green;padding:10px;margin:8px 0}
+.wrong{border-left:5px solid red;padding:10px;margin:8px 0}
+.skipped{border-left:5px solid orange;padding:10px;margin:8px 0}
+#timer{font-weight:bold;color:red;}
 </style>
 </head>
 
@@ -60,6 +57,7 @@ button{
 const params = new URLSearchParams(window.location.search);
 const subject = params.get("subject");
 
+// ================= QUESTIONS =================
 let questions=[];
 if(subject==="history") questions=historyQuestions;
 else if(subject==="polity") questions=polityQuestions;
@@ -83,8 +81,7 @@ function loadQuestion(){
   document.getElementById("timer").innerText=timeLeft;
 
   const q=questions[index];
-  document.getElementById("qno").innerText=
-    `Question ${index+1}/${questions.length}`;
+  document.getElementById("qno").innerText=`Question ${index+1}/${questions.length}`;
   document.getElementById("question").innerText=q.question;
 
   const optDiv=document.getElementById("options");
@@ -99,6 +96,7 @@ function loadQuestion(){
   });
 
   const qStart=Date.now();
+  window.qStartTime=qStart;
 
   timerInterval=setInterval(()=>{
     timeLeft--;
@@ -113,9 +111,6 @@ function loadQuestion(){
       else finalSubmit();
     }
   },1000);
-
-  // save start time for manual next
-  window.qStartTime=qStart;
 }
 
 loadQuestion();
@@ -128,8 +123,7 @@ function nextQuestion(){
   const spent=Math.min(60,Math.round((Date.now()-window.qStartTime)/1000));
   timePerQuestion.push(spent);
 
-  if(selected) answers[index]=parseInt(selected.value);
-  else answers[index]=null;
+  answers[index]= selected ? parseInt(selected.value) : null;
 
   index++;
   if(index<questions.length) loadQuestion();
@@ -156,14 +150,14 @@ function finalSubmit(){
   const totalTime=Math.round((Date.now()-startTestTime)/1000);
   const avgTime=(totalTime/questions.length).toFixed(1);
 
-  let review="";
+  let reviewHTML="";
 
   questions.forEach((q,i)=>{
     const ua=answers[i];
 
     if(ua===null){
       skipped++;
-      review+=`
+      reviewHTML+=`
       <div class="skipped">
         <b>Q:</b> ${q.question}<br>
         <b>Status:</b> Skipped<br>
@@ -173,7 +167,7 @@ function finalSubmit(){
     }
     else if(ua===q.correct){
       correct++;
-      review+=`
+      reviewHTML+=`
       <div class="correct">
         <b>Q:</b> ${q.question}<br>
         <b>Status:</b> Correct<br>
@@ -182,7 +176,7 @@ function finalSubmit(){
     }
     else{
       wrong++;
-      review+=`
+      reviewHTML+=`
       <div class="wrong">
         <b>Q:</b> ${q.question}<br>
         <b>Your:</b> ${q.options[ua]}<br>
@@ -202,8 +196,29 @@ function finalSubmit(){
     <p><b>Average Time / Q:</b> ${avgTime} sec</p>
     <hr>
     <h3>Answer Review</h3>
-    ${review}
+    ${reviewHTML}
   `;
+
+  // ============ EMAILJS SEND ============
+  emailjs.send(
+    "service_fyssovx",
+    "template_qfj8k1q",
+    {
+      user_name: "MCQ User",
+      subject: subject,
+      total: questions.length,
+      correct: correct,
+      wrong: wrong,
+      skipped: skipped,
+      total_time: totalTime + " sec",
+      avg_time: avgTime + " sec",
+      result_details: reviewHTML
+    }
+  ).then(()=>{
+    console.log("📧 Result email sent");
+  }).catch(err=>{
+    console.error("❌ Email error",err);
+  });
 }
 </script>
 
