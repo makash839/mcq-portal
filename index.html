@@ -13,82 +13,76 @@ body{
   background:#fff;
   max-width:400px;
   margin:60px auto;
-  padding:25px;
+  padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
 }
-input{
+input, select, button{
   width:100%;
   padding:8px;
   margin:8px 0;
 }
 button{
-  padding:8px 15px;
-  margin-top:10px;
-  width:100%;
+  background:#007bff;
+  color:#fff;
+  border:none;
+  cursor:pointer;
 }
-.hidden{display:none}
-.error{color:red}
-.success{color:green}
+button:hover{
+  background:#0056b3;
+}
+.error{
+  color:red;
+  margin-top:10px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="box" id="loginBox">
-  <h2>🔐 MCQ Test Login</h2>
-  <input type="password" id="loginPassword" placeholder="Enter Password">
-  <button onclick="login()">Login</button>
-  <p id="loginMsg" class="error"></p>
-</div>
+<div class="box">
+  <h2>📝 MCQ Test Login</h2>
 
-<div class="box hidden" id="subjectBox">
-  <h2>📚 Select Subject</h2>
+  <input id="name" placeholder="Enter Name">
+  <input id="mobile" placeholder="Enter Mobile Number">
+  <input id="email" placeholder="Enter Email">
 
-  <button onclick="startTest('history')">History</button>
-  <button onclick="startTest('polity')">Polity</button>
-  <button onclick="startTest('geography')">Geography</button>
+  <select id="subject">
+    <option value="">Select Subject</option>
+    <option value="polity">Polity</option>
+    <option value="history">History</option>
+    <option value="geography">Geography</option>
+  </select>
 
-  <hr>
-  <h3>🔑 Change Password</h3>
-  <input type="password" id="newPassword" placeholder="New Password">
-  <button onclick="changePassword()">Change Password</button>
-  <p id="changeMsg" class="success"></p>
+  <input id="password" type="password" placeholder="Enter Test Password">
+
+  <button onclick="startTest()">Start Test</button>
+
+  <div class="error" id="error"></div>
 </div>
 
 <script>
-// ================= DEFAULT PASSWORD =================
-if(!localStorage.getItem("mcqPassword")){
-  localStorage.setItem("mcqPassword","1234");
-}
+const TEST_PASSWORD = "TEST@123"; // 🔐 CHANGE LATER FROM ADMIN
 
-// ================= LOGIN =================
-function login(){
-  const entered = document.getElementById("loginPassword").value;
-  const saved = localStorage.getItem("mcqPassword");
+function startTest(){
+  const name = document.getElementById("name").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const subject = document.getElementById("subject").value;
+  const password = document.getElementById("password").value;
 
-  if(entered === saved){
-    document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("subjectBox").classList.remove("hidden");
-  } else {
-    document.getElementById("loginMsg").innerText = "❌ Wrong Password";
-  }
-}
-
-// ================= CHANGE PASSWORD =================
-function changePassword(){
-  const newPass = document.getElementById("newPassword").value;
-  if(newPass.length < 4){
-    document.getElementById("changeMsg").innerText = "❌ Min 4 characters required";
+  if(!name || !mobile || !email || !subject || !password){
+    document.getElementById("error").innerText = "❌ All fields are required";
     return;
   }
-  localStorage.setItem("mcqPassword",newPass);
-  document.getElementById("changeMsg").innerText = "✅ Password Changed Successfully";
-  document.getElementById("newPassword").value="";
-}
 
-// ================= START TEST =================
-function startTest(subject){
-  window.location.href = `test.html?subject=${subject}`;
+  if(password !== TEST_PASSWORD){
+    document.getElementById("error").innerText = "❌ Wrong Password";
+    return;
+  }
+
+  // redirect to test page
+  window.location.href =
+    `test.html?subject=${subject}&name=${encodeURIComponent(name)}&mobile=${mobile}&email=${encodeURIComponent(email)}`;
 }
 </script>
 
