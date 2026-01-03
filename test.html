@@ -8,29 +8,32 @@
 body{
   font-family: Arial;
   background:#f2f2f2;
+  padding:20px;
 }
 .box{
   background:#fff;
-  padding:20px;
   max-width:800px;
-  margin:30px auto;
-  border-radius:5px;
+  margin:auto;
+  padding:20px;
 }
 button{
   padding:8px 15px;
   margin:5px;
 }
-.correct{border-left:5px solid green;padding:10px}
-.wrong{border-left:5px solid red;padding:10px}
-.skipped{border-left:5px solid orange;padding:10px}
+.option{
+  display:block;
+  margin:6px 0;
+}
 </style>
 </head>
 
 <body>
 
 <div class="box">
-  <h3 id="title"></h3>
-  <div id="quiz"></div>
+  <h2 id="subjectTitle"></h2>
+  <h3 id="qno"></h3>
+  <p id="question"></p>
+  <div id="options"></div>
 
   <button onclick="nextQuestion()">Next</button>
   <button onclick="skipQuestion()">Skip</button>
@@ -38,143 +41,111 @@ button{
 </div>
 
 <script>
-// ---------------- USER DATA ----------------
-let name = localStorage.getItem("name");
-let subject = localStorage.getItem("subject");
+/* 🔹 SUBJECT LOAD LOGIC */
+const params = new URLSearchParams(window.location.search);
+const subject = params.get("subject");
 
-document.getElementById("title").innerText =
-  subject.toUpperCase() + " MCQ Test";
+let questions = [];
 
-// ---------------- MCQ DATA ----------------
-const mcq = {
-  history: [
-    {
-      q: "1857 का विद्रोह किस वर्ष हुआ?",
-      options: ["1856","1857","1858","1859"],
-      correct: 2,
-      exp: "1857 का विद्रोह 1857 में हुआ।"
-    },
-    {
-      q: "प्लासी का युद्ध कब हुआ?",
-      options: ["1757","1764","1761","1748"],
-      correct: 1,
-      exp: "प्लासी का युद्ध 1757 में हुआ।"
-    }
-  ],
+if(subject === "history"){
+  document.write('<script src="data/history.js"><\/script>');
+}
+if(subject === "polity"){
+  document.write('<script src="data/polity.js"><\/script>');
+}
+if(subject === "geography"){
+  document.write('<script src="data/geography.js"><\/script>');
+}
+</script>
 
-  polity: [
-    {
-      q: "भारतीय संविधान कब लागू हुआ?",
-      options: ["15 Aug 1947","26 Jan 1950","26 Nov 1949","2 Oct 1950"],
-      correct: 2,
-      exp: "संविधान 26 जनवरी 1950 को लागू हुआ।"
-    },
-    {
-      q: "संविधान सभा के अध्यक्ष कौन थे?",
-      options: ["नेहरू","अंबेडकर","राजेंद्र प्रसाद","पटेल"],
-      correct: 3,
-      exp: "डॉ. राजेंद्र प्रसाद अध्यक्ष थे।"
-    }
-  ],
+<script>
+let index = 0;
+let correct = 0;
+let wrong = 0;
+let skipped = 0;
+let userAnswers = [];
 
-  geography: [
-    {
-      q: "भारत की सबसे लंबी नदी?",
-      options: ["यमुना","गंगा","ब्रह्मपुत्र","गोदावरी"],
-      correct: 2,
-      exp: "गंगा भारत की सबसे लंबी नदी है।"
-    },
-    {
-      q: "कर्क रेखा कितने राज्यों से गुजरती है?",
-      options: ["6","7","8","9"],
-      correct: 3,
-      exp: "कर्क रेखा 8 राज्यों से गुजरती है।"
-    }
-  ]
+/* 🔹 AFTER FILE LOAD */
+window.onload = () => {
+  if(subject === "history") questions = historyQuestions;
+  if(subject === "polity") questions = polityQuestions;
+  if(subject === "geography") questions = geographyQuestions;
+
+  document.getElementById("subjectTitle").innerText =
+    subject.toUpperCase() + " MCQ TEST";
+
+  loadQuestion();
 };
 
-// ---------------- ENGINE ----------------
-let questions = mcq[subject];
-let i = 0, correct = 0, wrong = 0, skip = 0;
-let answers = [];
+function loadQuestion(){
+  const q = questions[index];
+  document.getElementById("qno").innerText =
+    `Question ${index+1} / ${questions.length}`;
+  document.getElementById("question").innerText = q.question;
 
-function showQuestion(){
-  let q = questions[i];
-  quiz.innerHTML = `
-    <h4>Q${i+1}. ${q.q}</h4>
-    ${q.options.map((o,idx)=>`
-      <label>
-        <input type="radio" name="opt" value="${idx+1}">
-        ${o}
-      </label><br>
-    `).join("")}
-  `;
-}
-
-showQuestion();
-
-function saveAnswer(){
-  let sel = document.querySelector("input[name=opt]:checked");
-  answers[i] = sel ? Number(sel.value) : null;
+  let html = "";
+  q.options.forEach((opt,i)=>{
+    html += `
+      <label class="option">
+        <input type="radio" name="opt" value="${i}">
+        ${opt}
+      </label>`;
+  });
+  document.getElementById("options").innerHTML = html;
 }
 
 function nextQuestion(){
-  saveAnswer();
-  i++;
-  i < questions.length ? showQuestion() : finalSubmit();
+  const selected = document.querySelector('input[name="opt"]:checked');
+
+  if(selected){
+    userAnswers[index] = Number(selected.value);
+  }else{
+    userAnswers[index] = null;
+  }
+
+  index++;
+  if(index < questions.length){
+    loadQuestion();
+  }else{
+    finalSubmit();
+  }
 }
 
 function skipQuestion(){
-  answers[i] = null;
-  i++;
-  i < questions.length ? showQuestion() : finalSubmit();
+  userAnswers[index] = null;
+  skipped++;
+  index++;
+  if(index < questions.length){
+    loadQuestion();
+  }else{
+    finalSubmit();
+  }
 }
 
 function finalSubmit(){
-  quiz.innerHTML = "<h3>Result</h3>";
-  questions.forEach((q,idx)=>{
-    if(answers[idx]==null){
-      skip++;
-      quiz.innerHTML += `
-        <div class="skipped">
-        <b>${q.q}</b><br>
-        Unattempted<br>
-        Correct: ${q.options[q.correct-1]}<br>
-        ${q.exp}
-        </div>`;
+  questions.forEach((q,i)=>{
+    if(userAnswers[i] === null){
+      // skipped
     }
-    else if(answers[idx]==q.correct){
+    else if(userAnswers[i] === q.correct){
       correct++;
-      quiz.innerHTML += `
-        <div class="correct">
-        <b>${q.q}</b><br>
-        Correct ✔<br>
-        ${q.exp}
-        </div>`;
     }
     else{
       wrong++;
-      quiz.innerHTML += `
-        <div class="wrong">
-        <b>${q.q}</b><br>
-        Wrong ❌<br>
-        Your: ${q.options[answers[idx]-1]}<br>
-        Correct: ${q.options[q.correct-1]}<br>
-        ${q.exp}
-        </div>`;
     }
   });
 
-  quiz.innerHTML += `
-    <h3>
-      ✅ Correct: ${correct}<br>
-      ❌ Wrong: ${wrong}<br>
-      ⚠️ Unattempted: ${skip}
-    </h3>
+  document.body.innerHTML = `
+    <div class="box">
+      <h2>Result</h2>
+      <p>Total: ${questions.length}</p>
+      <p>Correct: ${correct}</p>
+      <p>Wrong: ${wrong}</p>
+      <p>Skipped: ${questions.length - correct - wrong}</p>
+    </div>
   `;
 }
 </script>
 
 </body>
 </html>
-
