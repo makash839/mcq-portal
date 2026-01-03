@@ -16,10 +16,10 @@ body{
 .box{
   background:#fff;
   padding:25px;
-  width:350px;
-  box-shadow:0 0 10px rgba(0,0,0,0.2);
+  width:320px;
+  box-shadow:0 0 10px rgba(0,0,0,.2);
 }
-input, select, button{
+input,select,button{
   width:100%;
   padding:10px;
   margin:8px 0;
@@ -30,9 +30,6 @@ button{
   border:none;
   cursor:pointer;
 }
-button:hover{
-  background:#0056b3;
-}
 </style>
 </head>
 
@@ -41,9 +38,9 @@ button:hover{
 <div class="box">
   <h2>MCQ Test Portal</h2>
 
-  <input type="text" id="name" placeholder="Enter Name">
-  <input type="text" id="mobile" placeholder="Enter Mobile">
-  <input type="email" id="email" placeholder="Enter Email">
+  <input id="name" placeholder="Name" required>
+  <input id="email" placeholder="Email" required>
+  <input id="mobile" placeholder="Mobile" required>
 
   <select id="subject">
     <option value="">-- Select Subject --</option>
@@ -58,23 +55,19 @@ button:hover{
 <script>
 function startTest(){
   const name = document.getElementById("name").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
   const email = document.getElementById("email").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
   const subject = document.getElementById("subject").value;
 
-  if(!name || !mobile || !email || !subject){
-    alert("Please fill all details");
+  if(!name || !email || !mobile || !subject){
+    alert("All fields required");
     return;
   }
 
-  // data save (browser memory)
-  localStorage.setItem("name", name);
-  localStorage.setItem("mobile", mobile);
-  localStorage.setItem("email", email);
-  localStorage.setItem("subject", subject);
+  const url =
+    `test.html?subject=${subject}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&mobile=${mobile}`;
 
-  // go to test page
-  window.location.href = "test.html";
+  window.location.href = url;
 }
 </script>
 
