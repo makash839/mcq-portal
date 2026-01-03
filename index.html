@@ -3,71 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <title>MCQ Login</title>
+
 <style>
 body{
   font-family: Arial;
-  background:#f2f2f2;
+  background:#e5e5e5;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 .box{
-  max-width:400px;
-  margin:100px auto;
   background:#fff;
-  padding:20px;
+  padding:25px;
+  width:350px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
 }
-input,select,button{
+input, select, button{
   width:100%;
   padding:10px;
   margin:8px 0;
 }
 button{
-  background:#0b3c6d;
+  background:#0b3c6f;
   color:#fff;
   border:none;
   cursor:pointer;
 }
+button:hover{
+  background:#062a4f;
+}
 </style>
 </head>
+
 <body>
 
 <div class="box">
   <h2>Login to MCQ Test</h2>
 
-  <input id="name" placeholder="Name" required>
-  <input id="mobile" placeholder="Mobile Number" required>
-  <input id="email" placeholder="Email" required>
-  <input id="password" type="password" placeholder="Password" required>
+  <input type="text" id="name" placeholder="Name" required>
+  <input type="number" id="mobile" placeholder="Mobile Number" required>
+  <input type="password" id="password" placeholder="Password" required>
 
-  <select id="subject">
-    <option value="">Select Subject</option>
+  <select id="subject" required>
+    <option value="">-- Select Subject --</option>
     <option value="history">History</option>
     <option value="polity">Polity</option>
     <option value="geography">Geography</option>
   </select>
 
-  <button onclick="login()">Login & Start</button>
+  <button onclick="startTest()">Login & Start</button>
+  <p style="font-size:12px;color:gray">* Authorized users only</p>
 </div>
 
 <script>
 // 🔐 CHANGE PASSWORD ONLY HERE
 const MCQ_PASSWORD = "1234";
 
-function login(){
-  const pass = document.getElementById("password").value;
+function startTest(){
+  const name = document.getElementById("name").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const password = document.getElementById("password").value;
   const subject = document.getElementById("subject").value;
 
-  if(pass !== MCQ_PASSWORD){
+  if(!name || !mobile || !password || !subject){
+    alert("All fields are required");
+    return;
+  }
+
+  if(password !== MCQ_PASSWORD){
     alert("Wrong Password");
     return;
   }
-  if(!subject){
-    alert("Select subject");
-    return;
-  }
 
-  localStorage.setItem("mcqLogin","yes");
-  localStorage.setItem("subject",subject);
+  // SAVE DATA
+  localStorage.setItem("user_name", name);
+  localStorage.setItem("user_mobile", mobile);
+  localStorage.setItem("subject", subject);
+  localStorage.setItem("mcqLogin", "yes");
 
+  // GO TO TEST
   window.location.href = "test.html";
 }
 </script>
