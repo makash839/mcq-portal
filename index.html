@@ -1,81 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>MCQ Portal</title>
+<title>MCQ Test Portal</title>
 
 <style>
 body{
   font-family: Arial;
   background:#f2f2f2;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
 }
 .box{
   background:#fff;
-  padding:25px;
-  width:350px;
-  text-align:center;
-  box-shadow:0 0 10px rgba(0,0,0,.2);
+  padding:20px;
+  max-width:400px;
+  margin:50px auto;
+  border-radius:5px;
 }
-input,button{
+input, select, button{
   width:100%;
   padding:10px;
   margin:8px 0;
 }
 button{
+  background:#007bff;
+  color:#fff;
+  border:none;
   cursor:pointer;
-}
-.hidden{
-  display:none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- STEP 1: USER DETAILS -->
-<div class="box" id="detailsBox">
-  <h2>Enter Details</h2>
-  <input id="name" placeholder="Name">
-  <input id="mobile" placeholder="Mobile">
-  <input id="email" placeholder="Email">
-  <button onclick="goToSubject()">Continue</button>
-</div>
+<div class="box">
+  <h2>MCQ Test</h2>
 
-<!-- STEP 2: SUBJECT SELECTION -->
-<div class="box hidden" id="subjectBox">
-  <h2>Select Subject</h2>
-  <button onclick="startTest('history')">📜 History</button>
-  <button onclick="startTest('polity')">🏛 Polity</button>
-  <button onclick="startTest('geography')">🌍 Geography</button>
+  <input id="name" placeholder="Enter Name">
+  <input id="mobile" placeholder="Enter Mobile">
+  <input id="email" placeholder="Enter Email">
+
+  <select id="subject">
+    <option value="">-- Select Subject --</option>
+    <option value="history">History</option>
+    <option value="polity">Polity</option>
+    <option value="geography">Geography</option>
+  </select>
+
+  <button onclick="startTest()">Start Test</button>
 </div>
 
 <script>
-function goToSubject(){
-  const name = document.getElementById("name").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
-  const email = document.getElementById("email").value.trim();
+function startTest(){
+  let name = document.getElementById("name").value;
+  let mobile = document.getElementById("mobile").value;
+  let email = document.getElementById("email").value;
+  let subject = document.getElementById("subject").value;
 
-  if(!name || !mobile || !email){
-    alert("All fields required");
+  if(!name || !mobile || !email || !subject){
+    alert("All fields are required");
     return;
   }
 
-  localStorage.setItem("user_name", name);
-  localStorage.setItem("user_mobile", mobile);
-  localStorage.setItem("user_email", email);
-
-  document.getElementById("detailsBox").classList.add("hidden");
-  document.getElementById("subjectBox").classList.remove("hidden");
-}
-
-function startTest(subject){
+  // data store (next page ke liye)
+  localStorage.setItem("name", name);
+  localStorage.setItem("mobile", mobile);
+  localStorage.setItem("email", email);
   localStorage.setItem("subject", subject);
-  alert("Subject selected: " + subject.toUpperCase());
-  // NEXT STEP: yahin se subject page open hoga
+
+  // test page open
+  window.location.href = "test.html";
 }
 </script>
 
