@@ -2,28 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MCQ Login</title>
+<title>MCQ Portal Login</title>
+
+<!-- PASSWORD CONFIG -->
+<script src="config.js"></script>
 
 <style>
 body{
   font-family: Arial, sans-serif;
   background:#f2f2f2;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 .box{
-  max-width:420px;
-  margin:60px auto;
   background:#fff;
   padding:25px;
+  width:350px;
   box-shadow:0 0 10px rgba(0,0,0,.2);
 }
 h2{
   text-align:center;
 }
-input,button{
+input,select,button{
   width:100%;
   padding:10px;
   margin:8px 0;
-  font-size:15px;
 }
 button{
   background:#007bff;
@@ -34,9 +39,6 @@ button{
 button:hover{
   background:#0056b3;
 }
-small{
-  color:#555;
-}
 </style>
 </head>
 
@@ -45,60 +47,40 @@ small{
 <div class="box">
   <h2>MCQ Test Login</h2>
 
-  <form onsubmit="submitLogin(event)">
-    <input id="name" placeholder="Full Name" required>
-    <input id="mobile" placeholder="Mobile Number" required>
-    <input id="email" type="email" placeholder="Email Address" required>
-    <input id="password" type="password" placeholder="Password" required>
+  <input type="text" id="name" placeholder="Your Name" required>
+  <input type="email" id="email" placeholder="Your Email" required>
+  <input type="text" id="mobile" placeholder="Mobile Number" required>
 
-    <button type="submit">Login & Start Test</button>
-  </form>
+  <select id="subject" required>
+    <option value="">Select Subject</option>
+    <option value="history">History</option>
+    <option value="polity">Polity</option>
+    <option value="geography">Geography</option>
+  </select>
 
-  <small>* Authorized users only</small>
+  <input type="password" id="password" placeholder="Enter Password" required>
+
+  <button onclick="loginUser()">Start Test</button>
 </div>
 
 <script>
-/* ====== CHANGE ONLY IF SCRIPT URL CHANGES ====== */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzd1zchKrcEsizMnrrFm_BGvI5iejTRnaN4rE2YDwE83D5yy8Re00bBrdboE4w639hYgQ/exec";
+function loginUser(){
+  const pass = document.getElementById("password").value;
+  const subject = document.getElementById("subject").value;
 
-function submitLogin(e){
-  e.preventDefault();
-
-  const name = document.getElementById("name").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if(!name || !mobile || !email || !password){
-    alert("All fields are required");
+  if(pass !== MCQ_PASSWORD){
+    alert("❌ Wrong Password");
     return;
   }
 
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      name:name,
-      mobile:mobile,
-      email:email,
-      password:password
-    })
-  })
-  .then(res => res.text())
-  .then(data => {
-    if(data === "SUCCESS"){
-      // ✅ Login success
-      window.location.href = "test.html";
-    }else{
-      alert("Invalid password or access denied");
-    }
-  })
-  .catch(err=>{
-    alert("Server error. Try again.");
-    console.error(err);
-  });
+  if(!subject){
+    alert("❌ Please select a subject");
+    return;
+  }
+
+  // details URL me bhej rahe hain
+  window.location.href =
+    `test.html?subject=${subject}`;
 }
 </script>
 
