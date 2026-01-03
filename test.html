@@ -1,173 +1,214 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>MCQ Test</title>
 
 <style>
-body{font-family:Arial;background:#f2f2f2}
-.box{background:#fff;max-width:900px;margin:30px auto;padding:20px}
-.option{display:block;margin:6px 0}
-button{padding:8px 15px;margin:5px}
-.correct{border-left:5px solid green;padding:10px}
-.wrong{border-left:5px solid red;padding:10px}
-.skipped{border-left:5px solid orange;padding:10px}
-#timer{font-weight:bold;color:red}
+body{
+  font-family: Arial, sans-serif;
+  background:#f2f2f2;
+}
+.box{
+  max-width:900px;
+  margin:30px auto;
+  background:#fff;
+  padding:20px;
+  box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+.option{
+  display:block;
+  margin:8px 0;
+}
+button{
+  padding:8px 15px;
+  margin:5px;
+  cursor:pointer;
+}
+.correct{border-left:5px solid green;padding:10px;margin:8px 0}
+.wrong{border-left:5px solid red;padding:10px;margin:8px 0}
+.skipped{border-left:5px solid orange;padding:10px;margin:8px 0}
+#timer{
+  font-weight:bold;
+  color:red;
+}
 </style>
 </head>
 
 <body>
 
+<script>
+// 🚫 BLOCK DIRECT ACCESS
+if(localStorage.getItem("mcqLogin") !== "yes"){
+  window.location.href = "index.html";
+}
+</script>
+
 <div class="box" id="quizBox">
   <h3 id="qno"></h3>
   <p id="question"></p>
   <div id="options"></div>
+
   <p>⏱ Time Left: <span id="timer">60</span> sec</p>
 
-  <button onclick="nextQ()">Next</button>
-  <button onclick="skipQ()">Skip</button>
+  <button onclick="nextQuestion()">Next</button>
+  <button onclick="skipQuestion()">Skip</button>
   <button onclick="finalSubmit()">Final Submit</button>
 </div>
 
 <div class="box" id="resultBox" style="display:none"></div>
 
-<!-- SUBJECT DATA -->
+<!-- SUBJECT DATA FILES -->
 <script src="data/history.js"></script>
 <script src="data/polity.js"></script>
 <script src="data/geography.js"></script>
 
 <script>
-// ================= URL DATA =================
-const url = new URLSearchParams(window.location.search);
-const subject = url.get("subject");
+// ================= SUBJECT LOAD =================
+const subject = localStorage.getItem("subject");
 
-let questions=[];
-if(subject==="history") questions = historyQuestions;
-else if(subject==="polity") questions = polityQuestions;
-else if(subject==="geography") questions = geographyQuestions;
-else alert("Invalid Subject");
+let questions = [];
+if(subject === "history") questions = historyQuestions;
+else if(subject === "polity") questions = polityQuestions;
+else if(subject === "geography") questions = geographyQuestions;
+else{
+  alert("Invalid subject");
+  window.location.href = "index.html";
+}
 
 // ================= VARIABLES =================
-let i=0;
-let answers = Array(questions.length).fill(null);
-let correct=0, wrong=0, skipped=0;
+let index = 0;
+let answers = [];
+let correct = 0;
+let wrong = 0;
+let skipped = 0;
 
-let timer=60, timerInt;
-let testStart = Date.now();
-let qStart;
+let timeLeft = 60;
+let timerInterval;
+let testStartTime = Date.now();
 
-// ================= LOAD =================
-function loadQ(){
-  clearInterval(timerInt);
-  timer=60;
-  document.getElementById("timer").innerText=timer;
+// ================= LOAD QUESTION =================
+function loadQuestion(){
+  clearInterval(timerInterval);
+  timeLeft = 60;
+  document.getElementById("timer").innerText = timeLeft;
 
-  const q=questions[i];
+  const q = questions[index];
   document.getElementById("qno").innerText =
-    `Question ${i+1}/${questions.length}`;
-  document.getElementById("question").innerText=q.question;
+    `Question ${index+1} / ${questions.length}`;
+  document.getElementById("question").innerText = q.question;
 
-  const opt=document.getElementById("options");
-  opt.innerHTML="";
-  q.options.forEach((o,idx)=>{
-    opt.innerHTML+=`
+  const optDiv = document.getElementById("options");
+  optDiv.innerHTML = "";
+
+  q.options.forEach((opt,i)=>{
+    optDiv.innerHTML += `
       <label class="option">
-        <input type="radio" name="opt" value="${idx}"> ${o}
+        <input type="radio" name="opt" value="${i}">
+        ${opt}
       </label>`;
   });
 
-  qStart = Date.now();
+  timerInterval = setInterval(()=>{
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
 
-  timerInt=setInterval(()=>{
-    timer--;
-    document.getElementById("timer").innerText=timer;
-    if(timer<=0){
-      clearInterval(timerInt);
-      i++;
-      if(i<questions.length) loadQ();
+    if(timeLeft <= 0){
+      clearInterval(timerInterval);
+      answers[index] = null; // auto skip
+      index++;
+      if(index < questions.length) loadQuestion();
       else finalSubmit();
     }
   },1000);
 }
-loadQ();
+
+loadQuestion();
 
 // ================= NEXT =================
-function nextQ(){
-  clearInterval(timerInt);
-  const sel=document.querySelector("input[name='opt']:checked");
-  answers[i]= sel ? parseInt(sel.value) : null;
-  i++;
-  if(i<questions.length) loadQ();
+function nextQuestion(){
+  clearInterval(timerInterval);
+  const selected = document.querySelector("input[name='opt']:checked");
+  answers[index] = selected ? parseInt(selected.value) : null;
+
+  index++;
+  if(index < questions.length) loadQuestion();
   else finalSubmit();
 }
 
 // ================= SKIP =================
-function skipQ(){
-  clearInterval(timerInt);
-  answers[i]=null;
-  i++;
-  if(i<questions.length) loadQ();
+function skipQuestion(){
+  clearInterval(timerInterval);
+  answers[index] = null;
+
+  index++;
+  if(index < questions.length) loadQuestion();
   else finalSubmit();
 }
 
-// ================= FINAL =================
+// ================= FINAL SUBMIT =================
 function finalSubmit(){
-  clearInterval(timerInt);
+  clearInterval(timerInterval);
   document.getElementById("quizBox").style.display="none";
-  const res=document.getElementById("resultBox");
-  res.style.display="block";
 
-  let review="";
-  questions.forEach((q,idx)=>{
-    const realCorrect = q.correct - 1; // 🔥 FIX
-    const ua = answers[idx];
+  const resBox = document.getElementById("resultBox");
+  resBox.style.display="block";
 
-    if(ua===null){
+  const totalTimeSec = Math.floor((Date.now() - testStartTime) / 1000);
+  const min = Math.floor(totalTimeSec / 60);
+  const sec = totalTimeSec % 60;
+
+  let reviewHTML = "";
+
+  questions.forEach((q,i)=>{
+    const userAns = answers[i];
+    const correctIndex = q.correct - 1; // ✅ 1-based → 0-based
+
+    if(userAns === null){
       skipped++;
-      review+=`
-      <div class="skipped">
-        <b>Q:</b> ${q.question}<br>
-        <b>Status:</b> Skipped<br>
-        <b>Correct:</b> ${q.options[realCorrect]}<br>
-        <b>Explanation:</b> ${q.explanation}
-      </div>`;
+      reviewHTML += `
+        <div class="skipped">
+          <b>Q:</b> ${q.question}<br>
+          <b>Status:</b> Skipped<br>
+          <b>Correct:</b> ${q.options[correctIndex]}<br>
+          <b>Explanation:</b> ${q.explanation}
+        </div>`;
     }
-    else if(ua===realCorrect){
+    else if(userAns === correctIndex){
       correct++;
-      review+=`
-      <div class="correct">
-        <b>Q:</b> ${q.question}<br>
-        <b>Status:</b> Correct<br>
-        <b>Explanation:</b> ${q.explanation}
-      </div>`;
+      reviewHTML += `
+        <div class="correct">
+          <b>Q:</b> ${q.question}<br>
+          <b>Status:</b> Correct<br>
+          <b>Explanation:</b> ${q.explanation}
+        </div>`;
     }
     else{
       wrong++;
-      review+=`
-      <div class="wrong">
-        <b>Q:</b> ${q.question}<br>
-        <b>Your:</b> ${q.options[ua]}<br>
-        <b>Correct:</b> ${q.options[realCorrect]}<br>
-        <b>Explanation:</b> ${q.explanation}
-      </div>`;
+      reviewHTML += `
+        <div class="wrong">
+          <b>Q:</b> ${q.question}<br>
+          <b>Your:</b> ${q.options[userAns]}<br>
+          <b>Correct:</b> ${q.options[correctIndex]}<br>
+          <b>Explanation:</b> ${q.explanation}
+        </div>`;
     }
   });
 
-  const totalSec = Math.floor((Date.now()-testStart)/1000);
-  const min = Math.floor(totalSec/60);
-  const sec = totalSec%60;
-
-  res.innerHTML=`
+  resBox.innerHTML = `
     <h2>📊 Final Result</h2>
-    <p>Total: ${questions.length}</p>
-    <p>✅ Correct: ${correct}</p>
-    <p>❌ Wrong: ${wrong}</p>
-    <p>⏭ Skipped: ${skipped}</p>
-    <p>⏱ Time: ${min} min ${sec} sec</p>
+    <p><b>Total Questions:</b> ${questions.length}</p>
+    <p><b>Correct:</b> ${correct}</p>
+    <p><b>Wrong:</b> ${wrong}</p>
+    <p><b>Skipped:</b> ${skipped}</p>
+    <p><b>Total Time:</b> ${min} min ${sec} sec</p>
     <hr>
-    <h3>Review</h3>
-    ${review}
+    <h3>Answer Review</h3>
+    ${reviewHTML}
   `;
+
+  // logout after test
+  localStorage.removeItem("mcqLogin");
 }
 </script>
 
