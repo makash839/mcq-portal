@@ -5,32 +5,14 @@
 <title>MCQ Test</title>
 
 <style>
-body{
-  font-family: Arial;
-  background:#f2f2f2;
-}
-.box{
-  background:#fff;
-  max-width:900px;
-  margin:30px auto;
-  padding:20px;
-  box-shadow:0 0 10px rgba(0,0,0,.2);
-}
-.option{
-  display:block;
-  margin:8px 0;
-}
-button{
-  padding:8px 15px;
-  margin:5px;
-}
-.correct{border-left:5px solid green;padding:10px;margin:10px 0}
-.wrong{border-left:5px solid red;padding:10px;margin:10px 0}
-.skipped{border-left:5px solid orange;padding:10px;margin:10px 0}
-#timer{
-  font-weight:bold;
-  color:red;
-}
+body{font-family:Arial;background:#f2f2f2}
+.box{background:#fff;max-width:900px;margin:30px auto;padding:20px}
+.option{display:block;margin:6px 0}
+button{padding:8px 15px;margin:5px}
+.correct{border-left:5px solid green;padding:10px}
+.wrong{border-left:5px solid red;padding:10px}
+.skipped{border-left:5px solid orange;padding:10px}
+#timer{font-weight:bold;color:red}
 </style>
 </head>
 
@@ -40,140 +22,119 @@ button{
   <h3 id="qno"></h3>
   <p id="question"></p>
   <div id="options"></div>
-
   <p>⏱ Time Left: <span id="timer">60</span> sec</p>
 
-  <button onclick="nextQuestion()">Next</button>
-  <button onclick="skipQuestion()">Skip</button>
+  <button onclick="nextQ()">Next</button>
+  <button onclick="skipQ()">Skip</button>
   <button onclick="finalSubmit()">Final Submit</button>
 </div>
 
 <div class="box" id="resultBox" style="display:none"></div>
 
-<!-- SUBJECT FILES -->
+<!-- SUBJECT DATA -->
 <script src="data/history.js"></script>
 <script src="data/polity.js"></script>
 <script src="data/geography.js"></script>
 
 <script>
-// ================= SUBJECT SELECT =================
-const params = new URLSearchParams(window.location.search);
-const subject = params.get("subject");
+// ================= URL DATA =================
+const url = new URLSearchParams(window.location.search);
+const subject = url.get("subject");
 
-let questions = [];
-if(subject === "history") questions = historyQuestions;
-else if(subject === "polity") questions = polityQuestions;
-else if(subject === "geography") questions = geographyQuestions;
-else {
-  alert("Invalid subject");
-}
+let questions=[];
+if(subject==="history") questions = historyQuestions;
+else if(subject==="polity") questions = polityQuestions;
+else if(subject==="geography") questions = geographyQuestions;
+else alert("Invalid Subject");
 
 // ================= VARIABLES =================
-let index = 0;
-let answers = [];
-let correct = 0, wrong = 0, skipped = 0;
+let i=0;
+let answers = Array(questions.length).fill(null);
+let correct=0, wrong=0, skipped=0;
 
-let timerInterval;
-let timeLeft = 60;
-let startTestTime = Date.now();
+let timer=60, timerInt;
+let testStart = Date.now();
+let qStart;
 
-// ================= LOAD QUESTION =================
-function loadQuestion(){
-  clearInterval(timerInterval);
-  timeLeft = 60;
-  document.getElementById("timer").innerText = timeLeft;
+// ================= LOAD =================
+function loadQ(){
+  clearInterval(timerInt);
+  timer=60;
+  document.getElementById("timer").innerText=timer;
 
-  const q = questions[index];
+  const q=questions[i];
   document.getElementById("qno").innerText =
-    `Question ${index+1} / ${questions.length}`;
-  document.getElementById("question").innerText = q.question;
+    `Question ${i+1}/${questions.length}`;
+  document.getElementById("question").innerText=q.question;
 
-  const optDiv = document.getElementById("options");
-  optDiv.innerHTML = "";
-
-  q.options.forEach((opt,i)=>{
-    optDiv.innerHTML += `
+  const opt=document.getElementById("options");
+  opt.innerHTML="";
+  q.options.forEach((o,idx)=>{
+    opt.innerHTML+=`
       <label class="option">
-        <input type="radio" name="opt" value="${i}">
-        ${opt}
+        <input type="radio" name="opt" value="${idx}"> ${o}
       </label>`;
   });
 
-  window.qStartTime = Date.now();
+  qStart = Date.now();
 
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    document.getElementById("timer").innerText = timeLeft;
-
-    if(timeLeft <= 0){
-      clearInterval(timerInterval);
-      answers[index] = null; // ⬅️ unattempted
-      index++;
-      if(index < questions.length) loadQuestion();
+  timerInt=setInterval(()=>{
+    timer--;
+    document.getElementById("timer").innerText=timer;
+    if(timer<=0){
+      clearInterval(timerInt);
+      i++;
+      if(i<questions.length) loadQ();
       else finalSubmit();
     }
   },1000);
 }
-
-loadQuestion();
+loadQ();
 
 // ================= NEXT =================
-function nextQuestion(){
-  clearInterval(timerInterval);
-
-  const selected = document.querySelector("input[name='opt']:checked");
-  if(selected){
-    answers[index] = parseInt(selected.value);
-  } else {
-    answers[index] = null;
-  }
-
-  index++;
-  if(index < questions.length) loadQuestion();
+function nextQ(){
+  clearInterval(timerInt);
+  const sel=document.querySelector("input[name='opt']:checked");
+  answers[i]= sel ? parseInt(sel.value) : null;
+  i++;
+  if(i<questions.length) loadQ();
   else finalSubmit();
 }
 
 // ================= SKIP =================
-function skipQuestion(){
-  clearInterval(timerInterval);
-  answers[index] = null;
-  index++;
-  if(index < questions.length) loadQuestion();
+function skipQ(){
+  clearInterval(timerInt);
+  answers[i]=null;
+  i++;
+  if(i<questions.length) loadQ();
   else finalSubmit();
 }
 
-// ================= FINAL SUBMIT =================
+// ================= FINAL =================
 function finalSubmit(){
-  clearInterval(timerInterval);
+  clearInterval(timerInt);
   document.getElementById("quizBox").style.display="none";
-  const resBox = document.getElementById("resultBox");
-  resBox.style.display="block";
+  const res=document.getElementById("resultBox");
+  res.style.display="block";
 
-  const totalSeconds = Math.floor((Date.now()-startTestTime)/1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  const totalTimeText = minutes>0 ? `${minutes} min ${seconds} sec` : `${seconds} sec`;
-  const avgTime = (totalSeconds/questions.length).toFixed(1);
+  let review="";
+  questions.forEach((q,idx)=>{
+    const realCorrect = q.correct - 1; // 🔥 FIX
+    const ua = answers[idx];
 
-  let reviewHTML = "";
-
-  questions.forEach((q,i)=>{
-    const ua = answers[i];
-    const correctIndex = q.correct - 1; // ✅ FIX (1→0 based)
-
-    if(ua === null || ua === undefined){
+    if(ua===null){
       skipped++;
-      reviewHTML += `
+      review+=`
       <div class="skipped">
         <b>Q:</b> ${q.question}<br>
         <b>Status:</b> Skipped<br>
-        <b>Correct:</b> ${q.options[correctIndex]}<br>
+        <b>Correct:</b> ${q.options[realCorrect]}<br>
         <b>Explanation:</b> ${q.explanation}
       </div>`;
     }
-    else if(ua === correctIndex){
+    else if(ua===realCorrect){
       correct++;
-      reviewHTML += `
+      review+=`
       <div class="correct">
         <b>Q:</b> ${q.question}<br>
         <b>Status:</b> Correct<br>
@@ -182,27 +143,30 @@ function finalSubmit(){
     }
     else{
       wrong++;
-      reviewHTML += `
+      review+=`
       <div class="wrong">
         <b>Q:</b> ${q.question}<br>
         <b>Your:</b> ${q.options[ua]}<br>
-        <b>Correct:</b> ${q.options[correctIndex]}<br>
+        <b>Correct:</b> ${q.options[realCorrect]}<br>
         <b>Explanation:</b> ${q.explanation}
       </div>`;
     }
   });
 
-  resBox.innerHTML = `
+  const totalSec = Math.floor((Date.now()-testStart)/1000);
+  const min = Math.floor(totalSec/60);
+  const sec = totalSec%60;
+
+  res.innerHTML=`
     <h2>📊 Final Result</h2>
-    <p><b>Total Questions:</b> ${questions.length}</p>
-    <p><b>Correct:</b> ${correct}</p>
-    <p><b>Wrong:</b> ${wrong}</p>
-    <p><b>Skipped:</b> ${skipped}</p>
-    <p><b>Total Time:</b> ${totalTimeText}</p>
-    <p><b>Average Time / Question:</b> ${avgTime} sec</p>
+    <p>Total: ${questions.length}</p>
+    <p>✅ Correct: ${correct}</p>
+    <p>❌ Wrong: ${wrong}</p>
+    <p>⏭ Skipped: ${skipped}</p>
+    <p>⏱ Time: ${min} min ${sec} sec</p>
     <hr>
-    <h3>Answer Review</h3>
-    ${reviewHTML}
+    <h3>Review</h3>
+    ${review}
   `;
 }
 </script>
