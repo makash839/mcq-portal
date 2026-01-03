@@ -1,2 +1,2 @@
 // 🔐 GLOBAL MCQ PASSWORD (CHANGE ONLY HERE)
-const MCQ_PASSWORD = "history123";
+const MCQ_PASSWORD = "1234";
